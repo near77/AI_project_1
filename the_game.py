@@ -1,30 +1,31 @@
-def show_board(board_size, condition):
-    if board_size == "4":
-        for row in range(4):
-            row_str = ""
-            for col in range(4):
-                row_str += "{:>3}".format(condition[row][col])
-            print(row_str)
-    elif board_size == "6":
-        for row in range(6):
-            row_str = ""
-            for col in range(6):
-                row_str += "{:>3}".format(condition[row][col])
-            print(row_str)
+def init_board(board_size):
+    board = [[0 for i in range(int(board_size))] for j in range(int(board_size))]
+    return board
 
+def init_users_hand(board_size):
     
+
+def show_board(board_size, board):
+    for row in range(int(board_size)):
+        row_str = ""
+        for col in range(int(board_size)):
+            row_str += "{:>3}".format(board[row][col])
+        print(row_str)
+
 def game():
-    play_first = input("User First?(0/1)")
-    game_board = input("Board Size?(4 or 6)")
-    if game_board == "4":
+    first_user = input("User First?(0/1)")
+    board_size = input("Board Size?(4 or 6)")
+    if board_size == "4":
+        board = init_board(board_size)
+        show_board()
         pass
-    elif game_board == "6":
+    elif board_size == "6":
+        board = init_board(board_size)
+        show_board()
         pass
     else:
         print("Please input a legal board size.")
         game()
 
 if __name__ == "__main__":
-    condition = []
-    show_board("4", condition)
-
+    game()
