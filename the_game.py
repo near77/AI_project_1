@@ -94,9 +94,10 @@ def greedy_AI(board_size, board, AI_hand):
     max_score = 0
     for row in range(int(board_size)):
         for col in range(int(board_size)):
+            if board[row][col][0] != "0" :
+                continue
             for card in set(AI_hand):
-                tmp_board = board
-                tmp_board[row][col] = [str(card), "yellow"]
+                board[row][col] = [str(card), "yellow"]
                 score = card # Center value
                 for i in [-1, 0, 1]:
                     for j in [-1, 0, 1]:
@@ -107,22 +108,17 @@ def greedy_AI(board_size, board, AI_hand):
                                 col + j < 0 or col + j >= int(board_size): 
                                 pass
                             else:
-                                if marked(board_size, tmp_board, row + i, col + j):
-                                    if tmp_board[row+i][col+j][1] == "green":
-                                        score += int(tmp_board[row+i][col+j][0])
-                                    elif tmp_board[row+i][col+j][1] == "yellow":
-                                        score -= int(tmp_board[row+i][col+j][0])
+                                if marked(board_size, board, row + i, col + j):
+                                    if board[row+i][col+j][1] == "green":
+                                        score += int(board[row+i][col+j][0])
+                                    elif board[row+i][col+j][1] == "yellow":
+                                        score -= int(board[row+i][col+j][0])
+                board[row][col] = ["0", "white"]
                 if score > max_score:
                     max_score = score
                     max_cell = [row, col, card]
     if max_cell == []:
-        print(board_size)
-        print(board)
-        print(AI_hand)
         row, col, weight = toy_AI(board_size, board, AI_hand)
-        print("Row: ",  row)
-        print("Col: ", col)
-        print("Weight: ", weight)
         return row, col, weight
     return max_cell[0], max_cell[1], max_cell[2]
 
@@ -145,7 +141,6 @@ def game():
             step = step.split(" ")
             text = colored("[User]:", "white", "on_green")
             print(text + " (" + step[0] + ", " + step[1] + ", " + step[2] + ")")
-            # step[0] = row, step[1] = col, step[2] = weight
             if board[int(step[0])][int(step[1])][0] == "0":
                 board[int(step[0])][int(step[1])] = [step[2], "green"]
                 users_hand[0].remove(int(step[2]))
