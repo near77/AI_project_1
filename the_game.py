@@ -18,6 +18,9 @@ def init_users_hand(board_size):
         return([[2, 2, 3, 3, 5, 5, 8, 8, 8, 13, 13] for i in range(2)])
 
 def init_score():
+    """
+    Initialize players' score to 0.([User, AI])
+    """
     return [0, 0]
 
 def show_hand(users_hand):
@@ -42,6 +45,7 @@ def show_board(board_size, board):
 def check_board(board_size, board, score):
     """
     Check every none zero or none X cell if their value exceed 15.
+    Return the board and score after checked.
     """
     marked_cell = []
     for row in range(int(board_size)):
@@ -69,6 +73,9 @@ def check_board(board_size, board, score):
     return board, score
 
 def toy_AI(board_size, board, AI_hand):
+    """
+    Always use the smallest card and always pick the first cell.
+    """
     for row in range(int(board_size)):
         for col in range(int(board_size)):
             if board[row][col][0] == "0":
@@ -78,6 +85,7 @@ def toy_AI(board_size, board, AI_hand):
 def marked(board_size, board, row, col):
     """
     Check if the index value bigger than 15.
+    Return True if the cell is marked.
     """
     value = 0
     for i in [-1, 0, 1]:
@@ -90,6 +98,10 @@ def marked(board_size, board, row, col):
         return True
             
 def greedy_AI(board_size, board, AI_hand):
+    """
+    Pick the highest value cell and card to play.
+    Return picked row, col and the card.
+    """
     max_cell = []
     max_score = 0
     for row in range(int(board_size)):
@@ -109,9 +121,9 @@ def greedy_AI(board_size, board, AI_hand):
                                 pass
                             else:
                                 if marked(board_size, board, row + i, col + j):
-                                    if board[row+i][col+j][1] == "green":
+                                    if board[row+i][col+j][1] == "green": # If marked cell is user's -> Plus
                                         score += int(board[row+i][col+j][0])
-                                    elif board[row+i][col+j][1] == "yellow":
+                                    elif board[row+i][col+j][1] == "yellow": # If marked cell is AI's -> Minus
                                         score -= int(board[row+i][col+j][0])
                 board[row][col] = ["0", "white"]
                 if score > max_score:
