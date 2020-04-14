@@ -57,7 +57,6 @@ def check_board(board_size, board, score):
                     else:
                         if board[row + i][col + j][0] != "X":
                             value += int(board[row + i][col + j][0])
-            print(value)
             if value > 15:
                 if board[row][col][1] == "green":
                     score[0] -= int(board[row][col][0])
@@ -76,7 +75,7 @@ def toy_AI(board_size, board, AI_hand):
                 weight = AI_hand[0]
                 return row, col, weight  
 
-def calculate_score(board_size, board, row, col):
+def marked(board_size, board, row, col):
     """
     Check if the index value bigger than 15.
     """
@@ -98,13 +97,35 @@ def greedy_AI(board_size, board, AI_hand):
             for card in set(AI_hand):
                 tmp_board = board
                 tmp_board[row][col] = [str(card), "yellow"]
+                score = card # Center value
                 for i in [-1, 0, 1]:
                     for j in [-1, 0, 1]:
                         if board[row][col][0] == "0" or board[row][col][0] == "X":
                             continue
                         else:
-                            if calculate_score(board_size, tmp_board, row + i, col + j):
-                                if tmp_board[row+i][col+j][1] == ""
+                            if row + i < 0 or row + i >= int(board_size) or \
+                                col + j < 0 or col + j >= int(board_size): 
+                                pass
+                            else:
+                                if marked(board_size, tmp_board, row + i, col + j):
+                                    if tmp_board[row+i][col+j][1] == "green":
+                                        score += int(tmp_board[row+i][col+j][0])
+                                    elif tmp_board[row+i][col+j][1] == "yellow":
+                                        score -= int(tmp_board[row+i][col+j][0])
+                if score > max_score:
+                    max_score = score
+                    max_cell = [row, col, card]
+    if max_cell == []:
+        print(board_size)
+        print(board)
+        print(AI_hand)
+        row, col, weight = toy_AI(board_size, board, AI_hand)
+        print("Row: ",  row)
+        print("Col: ", col)
+        print("Weight: ", weight)
+        return row, col, weight
+    return max_cell[0], max_cell[1], max_cell[2]
+
 def game():
     first_user = input("User First?(0/1) ") # 0:User 1:Computer
     board_size = input("Board Size?(4 or 6) ")
@@ -138,7 +159,8 @@ def game():
             turn = 1
         else:
             # Computer's turn
-            row, col, weight = AI(board_size, board, users_hand[1])
+            # row, col, weight = toy_AI(board_size, board, users_hand[1])
+            row, col, weight = greedy_AI(board_size, board, users_hand[1])
             text = colored("[AI]: ", "white", "on_yellow")
             print(text+ " (" + str(row) + ", " + str(col) + ", " + str(weight) + ")") 
             board[row][col] = [str(weight), "yellow"]
