@@ -1,74 +1,157 @@
 from termcolor import colored
 
-def prRed(s): 
-    print("\033[91m {}\033[00m" .format(s)) 
-
-def prGreen(s): 
-    print("\033[92m {}\033[00m" .format(s)) 
-
-def prYellow(s): 
-    print("\033[93m {}\033[00m" .format(s))
-
 def init_board(board_size):
-    board = [[0 for i in range(int(board_size))] for j in range(int(board_size))]
+    """
+    Initialize the board to white zero.
+    The board (row, col, weight, color)
+    """
+    board = [[["0", "white"] for i in range(int(board_size))] for j in range(int(board_size))]
     return board
 
 def init_users_hand(board_size):
+    """
+    Initialize players' hand according to the board size.
+    """
     if board_size == "4":
         return([[2, 3, 5, 8, 13] for i in range(2)])
     elif board_size == "6":
         return([[2, 2, 3, 3, 5, 5, 8, 8, 8, 13, 13] for i in range(2)])
 
+def init_score():
+    return [0, 0]
+
 def show_hand(users_hand):
+    """
+    Show current hand of players.
+    """
     text1 = colored("[User chess pieces]", "white", "on_green")
     text2 = colored("[  AI chess pieces]", "white", "on_yellow")
     print(text1 + ": " + str(users_hand[0]))
     print(text2 + ": " + str(users_hand[1]))
 
 def show_board(board_size, board):
+    """
+    Show current board.
+    """
     for row in range(int(board_size)):
         row_str = ""
         for col in range(int(board_size)):
-            row_str += "{:>3}".format(board[row][col])
+            row_str += colored("{:>3}".format(board[row][col][0]), board[row][col][1])
         print(row_str)
 
-def turns_loop(first_user, board_size, board ,users_hand):
-    turn = int(first_user)
-    if board_size == "4":
-        while users_hand[0] != [] or users_hand[1] != []:
-            if turn == 0:
-                # User's turn
-                step = input("Input (row, col, weight): ")
-                step = step.split(" ")
-                text = colored("[User]:", "white", "on_green")
-                print(text + " (" + step[0] + ", " + step[1] + ", " + step[2])
-                board[step[0]][step[1]] = colored(weight, "yellow")
-                turn = 1
-            else:
-                # Computer's turn
-                turn = 0
-    elif board_size == "6":
-        pass
-       
+def check_board(board_size, board, score):
+    """
+    Check every none zero or none X cell if their value exceed 15.
+    """
+    marked_cell = []
+    for row in range(int(board_size)):
+        for col in range(int(board_size)):
+            if board[row][col][0] == "0" or board[row][col][0] == "X":
+                continue
+            value = 0
+            for i in [-1, 0, 1]:
+                for j in [-1, 0, 1]:
+                    if row + i < 0 or row + i >= int(board_size) or \
+                        col + j < 0 or col + j >= int(board_size): 
+                        pass
+                    else:
+                        if board[row + i][col + j][0] != "X":
+                            value += int(board[row + i][col + j][0])
+            print(value)
+            if value > 15:
+                if board[row][col][1] == "green":
+                    score[0] -= int(board[row][col][0])
+                elif board[row][col][1] == "yellow":
+                    score[1] -= int(board[row][col][0])
+                marked_cell.append([row, col])
+    for cell in marked_cell:
+        board[cell[0]][cell[1]][0] = "X"
+        board[cell[0]][cell[1]][1] = "red"
+    return board, score
 
+def toy_AI(board_size, board, AI_hand):
+    for row in range(int(board_size)):
+        for col in range(int(board_size)):
+            if board[row][col][0] == "0":
+                weight = AI_hand[0]
+                return row, col, weight  
+
+def calculate_score(board_size, board, row, col):
+    """
+    Check if the index value bigger than 15.
+    """
+    value = 0
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            if board[row][col][0] == "0" or board[row][col][0] == "X":
+                continue
+            else:
+                value += int(board[row][col][0])
+    if value > 15:
+        return True
+            
+def greedy_AI(board_size, board, AI_hand):
+    max_cell = []
+    max_score = 0
+    for row in range(int(board_size)):
+        for col in range(int(board_size)):
+            for card in set(AI_hand):
+                tmp_board = board
+                tmp_board[row][col] = [str(card), "yellow"]
+                for i in [-1, 0, 1]:
+                    for j in [-1, 0, 1]:
+                        if board[row][col][0] == "0" or board[row][col][0] == "X":
+                            continue
+                        else:
+                            if calculate_score(board_size, tmp_board, row + i, col + j):
+                                if tmp_board[row+i][col+j][1] == ""
 def game():
     first_user = input("User First?(0/1) ") # 0:User 1:Computer
     board_size = input("Board Size?(4 or 6) ")
-    if board_size == "4":
-        users_hand = init_users_hand(board_size)
-        board = init_board(board_size)
-        show_board(board_size, board)
-        show_hand(users_hand)
-        pass
-    elif board_size == "6":
-        users_hand = init_users_hand(board_size)
-        board = init_board(board_size)
-        show_board(board_size, board)
-        show_hand(users_hand)
-        pass
+    if (first_user != "0" and first_user != "1") or (board_size != "4" and board_size != "6"):
+        print("Please input legal number.")
+        exit()
+    users_hand = init_users_hand(board_size)
+    board = init_board(board_size)
+    score = init_score() # score[0] = User's score score[1] = AI's score
+    show_board(board_size, board)
+    show_hand(users_hand)
+    turn = int(first_user)
+    while users_hand[0] != [] or users_hand[1] != []:
+        if turn == 0:
+            # User's turn
+            step = input("Input (row, col, weight): ")
+            step = step.split(" ")
+            text = colored("[User]:", "white", "on_green")
+            print(text + " (" + step[0] + ", " + step[1] + ", " + step[2] + ")")
+            # step[0] = row, step[1] = col, step[2] = weight
+            if board[int(step[0])][int(step[1])][0] == "0":
+                board[int(step[0])][int(step[1])] = [step[2], "green"]
+                users_hand[0].remove(int(step[2]))
+                score[0] += int(step[2])
+            else:
+                print("The block is illigal.")
+                continue
+            board, score = check_board(board_size, board, score)
+            show_board(board_size, board)
+            show_hand(users_hand)
+            turn = 1
+        else:
+            # Computer's turn
+            row, col, weight = AI(board_size, board, users_hand[1])
+            text = colored("[AI]: ", "white", "on_yellow")
+            print(text+ " (" + str(row) + ", " + str(col) + ", " + str(weight) + ")") 
+            board[row][col] = [str(weight), "yellow"]
+            users_hand[1].remove(weight)
+            score[1] += weight
+            board, score = check_board(board_size, board, score)
+            show_board(board_size, board)
+            show_hand(users_hand)
+            turn = 0
+    if score[0] > score[1]:
+        print("User Win.")
     else:
-        print("Please input a legal board size.")
-        game()
+        print("AI Win.")
 
 if __name__ == "__main__":
     game()
