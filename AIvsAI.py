@@ -28,8 +28,8 @@ def show_hand(users_hand):
     """
     Show current hand of players.
     """
-    text1 = colored("[User chess pieces]", "white", "on_green")
-    text2 = colored("[  AI chess pieces]", "white", "on_yellow")
+    text1 = colored("[AI_0 chess pieces]", "white", "on_green")
+    text2 = colored("[AI_1 chess pieces]", "white", "on_yellow")
     print(text1 + ": " + str(users_hand[0]))
     print(text2 + ": " + str(users_hand[1]))
 
@@ -107,8 +107,45 @@ def random_select(board_size, board, AI_hand):
         col = random.randrange(int(board_size))
     return row, col, card
 
+def greedy_AI_0(board_size, board, AI_hand):
+    """
+    Pick the highest value cell and card to play.
+    Return picked row, col and the card.
+    """
+    max_cell = []
+    max_score = 0
+    for row in range(int(board_size)):
+        for col in range(int(board_size)):
+            if board[row][col][0] != "0" :
+                continue
+            for card in set(AI_hand):
+                board[row][col] = [str(card), "green"]
+                score = card # Center value
+                for i in [-1, 0, 1]:
+                    for j in [-1, 0, 1]:
+                        if board[row][col][0] == "0" or board[row][col][0] == "X":
+                            continue
+                        else:
+                            if row + i < 0 or row + i >= int(board_size) or \
+                                col + j < 0 or col + j >= int(board_size): 
+                                pass
+                            else:
+                                if marked(board_size, board, row + i, col + j):
+                                    if board[row+i][col+j][1] == "yellow": 
+                                        score += int(board[row+i][col+j][0])
+                                    elif board[row+i][col+j][1] == "green": 
+                                        score -= int(board[row+i][col+j][0])
+                board[row][col] = ["0", "white"]
+                if score > max_score:
+                    max_score = score
+                    max_cell = [row, col, card]
+    if max_cell == []:
+        # row, col, weight = toy_AI(board_size, board, AI_hand)
+        row, col, weight = random_select(board_size, board, AI_hand)
+        return row, col, weight
+    return max_cell[0], max_cell[1], max_cell[2]
 
-def greedy_AI(board_size, board, AI_hand):
+def greedy_AI_1(board_size, board, AI_hand):
     """
     Pick the highest value cell and card to play.
     Return picked row, col and the card.
@@ -146,6 +183,7 @@ def greedy_AI(board_size, board, AI_hand):
         return row, col, weight
     return max_cell[0], max_cell[1], max_cell[2]
 
+
 def game():
     first_user = input("User First?(0/1) ") # 0:User 1:Computer
     board_size = input("Board Size?(4 or 6) ")
@@ -160,22 +198,12 @@ def game():
     turn = int(first_user)
     while users_hand[0] != [] or users_hand[1] != []:
         if turn == 1:
-            # User's turn
-            stime = time.time()
-            step = input("Input (row, col, weight): ")
-            if time.time() - stime > 30:
-                print("Time exceeded.")
-                break
-            step = step.split(" ")
-            text = colored("[User]:", "white", "on_green")
-            print(text + " (" + step[0] + ", " + step[1] + ", " + step[2] + ")")
-            if board[int(step[0])][int(step[1])][0] == "0":
-                board[int(step[0])][int(step[1])] = [step[2], "green"]
-                users_hand[0].remove(int(step[2]))
-                score[0] += int(step[2])
-            else:
-                print("The block is illigal.")
-                continue
+            row, col, weight = greedy_AI_0(board_size, board, users_hand[0])
+            text = colored("[AI_1]: ", "white", "on_green")
+            print(text+ " (" + str(row) + ", " + str(col) + ", " + str(weight) + ")") 
+            board[row][col] = [str(weight), "green"]
+            users_hand[0].remove(weight)
+            score[0] += weight
             board, score = check_board(board_size, board, score)
             show_board(board_size, board)
             show_hand(users_hand)
@@ -183,8 +211,8 @@ def game():
         else:
             # Computer's turn
             # row, col, weight = toy_AI(board_size, board, users_hand[1])
-            row, col, weight = greedy_AI(board_size, board, users_hand[1])
-            text = colored("[AI]: ", "white", "on_yellow")
+            row, col, weight = greedy_AI_1(board_size, board, users_hand[1])
+            text = colored("[AI_2]: ", "white", "on_yellow")
             print(text+ " (" + str(row) + ", " + str(col) + ", " + str(weight) + ")") 
             board[row][col] = [str(weight), "yellow"]
             users_hand[1].remove(weight)
@@ -194,9 +222,11 @@ def game():
             show_hand(users_hand)
             turn = 1
     if score[0] > score[1]:
-        print("User Win.")
+        print("AI_0 Win.")
+    elif score[0] < score[1]:
+        print("AI_1 Win.")
     else:
-        print("AI Win.")
+        print("Draw.")
 
 if __name__ == "__main__":
     game()
